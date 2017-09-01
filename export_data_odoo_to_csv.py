@@ -27,15 +27,7 @@ common_proxy = xmlrpclib.ServerProxy(url + 'common')
 object_proxy = xmlrpclib.ServerProxy(url + 'object')
 uid = common_proxy.login(DB, USER, PASS)
 
-def _create():
-
-    args = [('id', '<>', 0)]  # consulta
-    global product
-    list_product=[]
-    ids = object_proxy.execute(DB, uid, PASS, 'product.template', 'search', args)
-    for id in ids:
-        product = object_proxy.execute(DB, uid, PASS, 'product.template', 'read', id, ['id', 'name'])
-        list_product.append(product[0])
+def _export_data(list_product):
     download_dir = "/home/bpm/Escritorio/thefile.csv"
     csv = open(download_dir, "w")
     columnTitleRow = "id, name\n"
@@ -46,6 +38,10 @@ def _create():
             row = str(dic[key])+","
             csv.write(row)
         csv.write('\n')
+
+def _create():
+    list_product = object_proxy.execute(DB, uid, PASS, 'product.template', 'search_read', [('id', '<>', 0)], ['id', 'name'])
+    _export_data(list_product)
 
 def __main__():
     print 'Ha comenzado el proceso'
