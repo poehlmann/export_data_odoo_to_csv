@@ -30,7 +30,7 @@ uid = common_proxy.login(DB, USER, PASS)
 def _export_data(list_product):
     download_dir = "/home/bpm/Escritorio/thefile.csv"
     csv = open(download_dir, "w")
-    columnTitleRow = "id, name\n"
+    columnTitleRow = "categoria, id,nombre\n"
     csv.write(columnTitleRow)
     for dic in list_product:
         # print dic
@@ -40,8 +40,26 @@ def _export_data(list_product):
         csv.write('\n')
 
 def _create():
-    list_product = object_proxy.execute(DB, uid, PASS, 'product.template', 'search_read', [('id', '<>', 0)], ['id', 'name'])
-    _export_data(list_product)
+
+    categories_ids = object_proxy.execute(DB, uid, PASS, 'product.template', 'search_read', [('id', '<>', 0)], ['id', 'public_categ_ids'])
+    # print categories_ids
+    categories=[]
+    for id in categories_ids:
+        list_categories = object_proxy.execute(DB, uid, PASS, 'product.public.category', 'search_read', [('id', '=', id['public_categ_ids'])], ['name'])
+        try:
+            list_categories[0]['id_product'] = id['id']
+            categories.append(list_categories[0])
+        except Exception:
+            pass
+    print categories
+
+    list_products=[]
+    for category in categories:
+        product = object_proxy.execute(DB, uid, PASS, 'product.template', 'search_read', [('id', '=', category['id_product'])], ['id', 'name'])
+        product[0]['categoria'] = category['name']
+        list_products.append(product[0])
+    print list_products
+    _export_data(list_products)
 
 def __main__():
     print 'Ha comenzado el proceso'
